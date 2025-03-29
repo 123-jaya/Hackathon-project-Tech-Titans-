@@ -1,0 +1,38 @@
+import pandas as pd
+class SensorData:
+    def __init__(self, date, soil_moisture):
+        self.date = date
+        self.soil_moisture = soil_moisture
+#store data
+def read_excel(filename):
+    sensor_data_list = []    
+    try:
+        # Reading from file
+        df = pd.read_excel(filename, sheet_name=0)
+        df.columns = df.iloc[0] 
+        df = df[1:].reset_index(drop=True)  
+        df.rename(columns={df.columns[0]: "Date", df.columns[1]: "Soil Moisture"}, inplace=True)
+        df["Date"] = df["Date"].astype(str)
+        df["Soil Moisture"] = pd.to_numeric(df["Soil Moisture"], errors="coerce") 
+        df.dropna(subset=["Soil Moisture"], inplace=True)
+        for _, row in df.iterrows():
+            sensor_data_list.append(SensorData(row["Date"], row["Soil Moisture"]))
+    except Exception as e:
+        print(f"Error reading file: {e}")
+    return sensor_data_list
+#analyze soil moisture and give irrigation suggestions
+def analyze_data(sensor_data_list):
+    for entry in sensor_data_list:
+        print(f"Date: {entry.date} | Soil Moisture: {entry.soil_moisture:.2f}%", end=" ")
+
+        if entry.soil_moisture < 30.0:
+            print(" --> Low Moisture,Suggesting Irrigation ")
+        else:
+            print(" --> Moisture Level Optimal")
+if __name__ == "__main__":
+    filename = "C:/Users/Win/Downloads/20250329175428.xlsx"
+    sensor_data = read_excel(filename)
+    if not sensor_data:
+        print("No data available!")
+    else:
+        analyze_data(sensor_data)
