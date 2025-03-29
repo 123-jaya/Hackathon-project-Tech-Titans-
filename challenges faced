@@ -1,0 +1,19 @@
+1️.Getting Real-Time Weather Data
+Finding a free API that provides weather data.
+OpenWeather asking for ₹800, so you had to switch to WeatherAPI.
+Confusion on where to put the API key.
+
+2️.Fetching Data for 300+ Cities
+Initial script fetched data for only 96 cities instead of 300+.
+Frustration when fewer cities were included.
+Need for additional weather parameters (like wind speed, humidity, UV index, etc.).
+
+3️.Saving the Weather Data File
+Python throwing PermissionError when saving to E:/hacknite/real_time_weather_data.csv.
+Possible issues with folder permissions, file being open, or writing to an external drive.
+Had to figure out a different path for saving the file.
+
+4️.API Rate Limits & Errors
+API possibly limiting requests per second.
+Need to add a time.sleep(1) delay to prevent API blocking.
+Some cities failing to fetch data due to API issues
