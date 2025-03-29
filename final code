@@ -1,0 +1,96 @@
+import requests
+import pandas as pd
+import time
+
+# 🔹 API Configuration
+WEATHER_API_KEY = "81e5c725a47b449d8c0190927252903"
+WEATHER_BASE_URL = "http://api.weatherapi.com/v1/current.json"
+
+# 🔹 List of 237 Cities (No Change)
+cities = [ 
+    "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai", "Kolkata", "Pune", 
+    "Jaipur", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", 
+    "Pimpri-Chinchwad", "Patna", "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", 
+    "Faridabad", "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi", 
+    "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai", "Allahabad", "Howrah",
+    "Gwalior", "Ranchi", "Jabalpur", "Coimbatore", "Vijayawada", "Jodhpur", "Madurai",
+    "Raipur", "Kota", "Guwahati", "Chandigarh", "Solapur", "Hubballi-Dharwad", "Tiruchirappalli",
+    "Bareilly", "Mysore", "Tiruppur", "Gurgaon", "Aligarh", "Jalandhar", "Bhubaneswar",
+    "Salem", "Warangal", "Guntur", "Bhiwandi", "Saharanpur", "Gorakhpur", "Bikaner",
+    "Amravati", "Noida", "Jamshedpur", "Bhilai", "Cuttack", "Firozabad", "Kochi",
+    "Nellore", "Bhavnagar", "Dehradun", "Durgapur", "Asansol", "Rourkela", "Nanded",
+    "Kolhapur", "Ajmer", "Akola", "Gulbarga", "Jamnagar", "Ujjain", "Loni", "Siliguri",
+    "Jhansi", "Ulhasnagar", "Jammu", "Sangli-Miraj & Kupwad", "Mangalore", "Erode",
+    "Belgaum", "Ambattur", "Tirunelveli", "Malegaon", "Gaya", "Udaipur", "Kakinada",
+    "Davanagere", "Kozhikode", "Maheshtala", "Rajpur Sonarpur", "Bokaro", "South Dumdum",
+    "Bellary", "Patiala", "Gopalpur", "Agartala", "Bhagalpur", "Muzaffarnagar", "Bhatpara",
+    "Panihati", "Latur", "Dhule", "Rohtak", "Korba", "Bhilwara", "Berhampur", "Muzaffarpur",
+    "Ahmednagar", "Mathura", "Kollam", "Avadi", "Kadapa", "Kamarhati", "Sambalpur",
+    "Bilaspur", "Shahjahanpur", "Satara", "Bijapur", "Rampur", "Shivamogga", "Chandrapur",
+    "Junagadh", "Thrissur", "Alwar", "Bardhaman", "Kulti", "Nizamabad", "Parbhani",
+    "Tumkur", "Khammam", "Ozhukarai", "Bihar Sharif", "Panipat", "Darbhanga", "Bally",
+    "Aizawl", "Dewas", "Ichalkaranji", "Tirupati", "Karnal", "Bathinda", "Jalna", "Eluru",
+    "Barasat", "Purnia", "Kirari Suleman Nagar", "Puducherry", "Anantapur", "Satna",
+    "Moga", "Kavundampalayam", "Dindigul", "Tiruvannamalai", "Hajipur", "Fatehpur",
+    "Sagar", "Munger", "Surendranagar Dudhrej", "Kanchipuram", "Chittoor", "Karaikudi",
+    "Bhusawal", "Mahbubnagar", "Sivakasi", "Budaun", "Guntakal", "Porbandar", "Navsari",
+    "Etawah", "Proddatur", "Godhra", "Hindupur", "Nandyal", "Nagapattinam", "Chalakudy",
+    "Tezpur", "Kottayam", "Kannur", "Thanjavur", "Madhyamgram", "Bhiwadi", "Itanagar",
+    "Dehri", "Chirmiri", "Gangtok", "Srikakulam", "Hosur", "Bhimavaram", "Raigarh",
+    "Tinsukia", "Bongaigaon", "Shillong", "Guna", "Dharmavaram", "Neemuch", "Ghazipur",
+    "Palwal", "Narsapur", "Bettiah", "Kumbakonam", "Ambur", "Satna", "Adoni", "Udhagamandalam",
+    "Jagdalpur", "Modinagar", "Tanuku", "Gondia", "Tadepalligudem", "Haldia", "Bhadravati",
+    "Saharsa", "Chikkamagaluru", "Chandausi", "Hassan", "Baramati", "Pilibhit", "Sirsa",
+    "Kalyan", "Gangavati", "Sibsagar", "Gondal", "Nagda", "Banswara", "Morvi", "Hanumangarh",
+    "Jalgaon", "Kavali", "Hathras", "Jorhat", "Deoghar", "Chhatarpur", "Suri", "Bettiah",
+    "Dibrugarh", "Gopalganj", "Silchar", "North Lakhimpur", "Shillong", "Abohar"
+]
+
+weather_data = []
+
+for city in cities:
+    # 🔹 Fetch Weather Data
+    weather_params = {"key": WEATHER_API_KEY, "q": city}
+    response = requests.get(WEATHER_BASE_URL, params=weather_params)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"Processing: {city}")
+
+        temperature = data["current"]["temp_c"]
+        humidity = data["current"]["humidity"]
+        wind_speed = data["current"]["wind_kph"]
+        condition = data["current"]["condition"]["text"]
+        feels_like = data["current"]["feelslike_c"]
+        precipitation = data["current"]["precip_mm"]
+        pressure = data["current"]["pressure_mb"]
+        uv_index = data["current"]["uv"]
+        cloud_cover = data["current"]["cloud"]
+        visibility = data["current"]["vis_km"]
+        dew_point = data["current"]["dewpoint_c"] if "dewpoint_c" in data["current"] else "N/A"
+
+        # 🔹 Soil Moisture Formula
+        soil_moisture = max(0, min(100, (humidity * 0.8) - (temperature * 0.2) - (wind_speed * 0.1)))
+
+        weather_data.append({
+            "City": city,
+            "Temperature (°C)": temperature,
+            "Feels Like (°C)": feels_like,
+            "Humidity (%)": humidity,
+            "Wind Speed (km/h)": wind_speed,
+            "Condition": condition,
+            "Precipitation (mm)": precipitation,
+            "Pressure (hPa)": pressure,
+            "UV Index": uv_index,
+            "Cloud Cover (%)": cloud_cover,
+            "Visibility (km)": visibility,
+            "Dew Point (°C)": dew_point,
+            "Soil Moisture (%)": soil_moisture
+        })
+
+    time.sleep(1)
+
+# 🔹 Save Data to CSV
+df = pd.DataFrame(weather_data)
+df.to_csv("E:/hacknite/real_time_weather_data.csv", index=False)
+print("✅ Data saved successfully!")
