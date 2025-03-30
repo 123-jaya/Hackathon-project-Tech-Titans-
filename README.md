@@ -13,7 +13,7 @@ In this project, we developed an AI-powered smart irrigation system that optimiz
 -> Tech Stack Used
  Programming Language: Python, C++ (Arduino)
  Hardware: Arduino Uno, IR Sensors, DC Motor, Bluetooth Module
- APIs: WeatherAPI for real-time weather data
+ APIs: WeatherAPI for real-time weather data(API Key: 81e5c725a47b449d8c0190927252903)
  AI Model: Soil Moisture Estimation using humidity, temperature, wind speed
  Frameworks/Libraries: Pandas, Requests, Streamlit (for visualization)
 
