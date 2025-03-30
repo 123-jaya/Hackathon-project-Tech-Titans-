@@ -1,0 +1,152 @@
+#include <SoftwareSerial.h>
+
+#define EN1 9
+#define IN1 6
+#define IN2 7
+#define IR_SENSOR 4
+
+SoftwareSerial BT(10, 11); // TX, RX for Bluetooth HC-05
+
+struct WeatherData {
+    String city;
+    float temperature;
+    int humidity;
+    int soilMoisture;
+};
+
+WeatherData database[] = {
+    {"Bangalore", 30.5, 65, 40},
+    {"Mumbai", 32.1, 72, 45},
+    {"Delhi", 28.0, 60, 35},
+    {"Chennai", 34.2, 75, 50},
+    {"Kolkata", 29.5, 68, 42},
+    {"Vadodara", 31.0, 70, 0},
+    {"Tumkur", 28.3, 62, 38},
+    {"Kanpur", 29.8, 58, 1}
+};
+
+const int dataSize = sizeof(database) / sizeof(database[0]);
+float soil_moisture = 0;  // Declared globally
+bool pumpRunning = false;
+
+void setup() {
+    pinMode(EN1, OUTPUT);
+    pinMode(IN1, OUTPUT);
+    pinMode(IN2, OUTPUT);
+    pinMode(IR_SENSOR, INPUT);
+    
+    Serial.begin(9600);
+    BT.begin(9600);
+    Serial.println("System Ready. Waiting for commands...");
+}
+
+void loop() {
+    if (BT.available()) {
+        String receivedData = BT.readString();
+        receivedData.trim();
+        Serial.println("Received: " + receivedData);
+
+        if (receivedData.equalsIgnoreCase("CHECK_DRY")) {
+            checkDryCities();
+        }
+        else if (receivedData.startsWith("ON ")) {
+            int runTime = receivedData.substring(3).toInt();
+            if (soil_moisture > 30) {
+                BT.println("🚫 Soil Moisture is sufficient (>30%). Irrigation not needed!");
+            } else {
+                turnOnPump(runTime);
+            }
+        } 
+        else {
+            processCityRequest(receivedData);
+        }
+    }
+
+    if (pumpRunning && digitalRead(IR_SENSOR) == LOW) {
+        BT.println("⚠ Obstacle detected! Pump turned OFF!");
+        turnOffPump();
+    }
+}
+
+void processCityRequest(String cityRequest) {
+    cityRequest.trim();
+    cityRequest.toLowerCase();
+    bool found = false;
+    
+    for (int i = 0; i < dataSize; i++) {
+        String dbCity = database[i].city;
+        dbCity.toLowerCase();
+        
+        if (dbCity.indexOf(cityRequest) != -1) {
+            soil_moisture = database[i].soilMoisture; // Now works - variable is in scope
+            String alert = (database[i].soilMoisture < 30) ? "🚨 URGENT!" : "✅ OK";
+            
+            BT.println(
+                alert + " " + database[i].city + 
+                "\n🌱 Soil: " + String(database[i].soilMoisture) + "%" +
+                "\n🌡 Temp: " + String(database[i].temperature) + "°C"
+            );
+            found = true;
+            break;
+        }
+    }
+    
+    if (!found) {
+        BT.println("❌ City not found. Try these:");
+        for (int i = 0; i < min(3, dataSize); i++) {
+            BT.println("- " + database[i].city);
+        }
+    }
+}
+
+void checkDryCities() {
+    BT.println("\n🔍 Cities needing irrigation:");
+    int dryCount = 0;
+    
+    for (int i = 0; i < dataSize; i++) {
+        if (database[i].soilMoisture < 30) {
+            dryCount++;
+            BT.println(
+                "🚨 " + database[i].city + 
+                " (Soil: " + String(database[i].soilMoisture) + "%)"
+            );
+        }
+    }
+    
+    if (dryCount == 0) {
+        BT.println("✅ All cities have sufficient moisture");
+    } else {
+        BT.println("⚠ Total: " + String(dryCount) + " cities need water!");
+    }
+}
+
+void turnOnPump(int duration) {
+    if (digitalRead(IR_SENSOR) == LOW) {
+        BT.println("⚠ Obstacle detected! Cannot start pump.");
+        return;
+    }
+
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    analogWrite(EN1, 255); 
+    pumpRunning = true;
+    BT.println("💦 Pump ON for " + String(duration) + " seconds");
+    
+    unsigned long startTime = millis();
+    while (millis() - startTime < (duration * 1000)) {
+        if (digitalRead(IR_SENSOR) == LOW) {
+            BT.println("⚠ Obstacle detected! Pump stopped!");
+            turnOffPump();
+            return;
+        }
+    }
+    turnOffPump();
+}
+
+void turnOffPump() {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    analogWrite(EN1, 0);
+    pumpRunning = false;
+    BT.println("⏹ Pump OFF");
+}
