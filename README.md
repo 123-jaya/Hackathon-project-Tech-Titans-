@@ -48,3 +48,5 @@ In this project, we developed an AI-powered smart irrigation system that optimiz
   Scalability: The system can be adapted for different crops & locations.
 
 -> Screenshots / Demo Link
+   https://drive.google.com/file/d/1-DrZTm8d-W11bJlYf8jTyAOQf1xdAFiA/view?usp=drive_link
+   
